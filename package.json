@@ -1,0 +1,58 @@
+{
+  "name": "windows-memo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A local-first Windows sticky-note desktop application.",
+  "main": "out/main/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "typecheck": "node --preserve-symlinks --preserve-symlinks-main node_modules/typescript/bin/tsc -p tsconfig.node.json --noEmit && node --preserve-symlinks --preserve-symlinks-main node_modules/typescript/bin/tsc -p tsconfig.web.json --noEmit",
+    "lint": "node --preserve-symlinks --preserve-symlinks-main node_modules/eslint/bin/eslint.js .",
+    "format": "node --preserve-symlinks --preserve-symlinks-main node_modules/prettier/bin/prettier.cjs --write .",
+    "format:check": "node --preserve-symlinks --preserve-symlinks-main node_modules/prettier/bin/prettier.cjs --check .",
+    "test": "npm run test:repository && npm run test:assets",
+    "test:assets": "node scripts/run-electron-node.mjs --import tsx --test tests/asset-storage.test.ts",
+    "test:repository": "node scripts/run-electron-node.mjs --import tsx --test tests/note-repository.test.ts",
+    "package": "npm run build && electron-builder --dir",
+    "package:win": "npm run build && electron-builder --win"
+  },
+  "engines": {
+    "node": "^20.17.0 || >=22.0.0"
+  },
+  "dependencies": {
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/node": "^24.12.4",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.7.0",
+    "electron": "^41.7.1",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^3.1.0",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "8.55.0",
+    "vite": "^6.4.1"
+  },
+  "build": {
+    "appId": "com.local.windowsmemo",
+    "productName": "Windows Memo",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*"
+    ]
+  }
+}

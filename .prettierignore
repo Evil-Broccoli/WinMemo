@@ -1,0 +1,7 @@
+node_modules/
+out/
+release/
+package-lock.json
+AGENTS.md
+DEVELOPMENT_PLAN.md
+TASK_BOARD.md
