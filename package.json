@@ -12,8 +12,13 @@
     "lint": "node --preserve-symlinks --preserve-symlinks-main node_modules/eslint/bin/eslint.js .",
     "format": "node --preserve-symlinks --preserve-symlinks-main node_modules/prettier/bin/prettier.cjs --write .",
     "format:check": "node --preserve-symlinks --preserve-symlinks-main node_modules/prettier/bin/prettier.cjs --check .",
-    "test": "npm run test:repository && npm run test:assets",
-    "test:assets": "node scripts/run-electron-node.mjs --import tsx --test tests/asset-storage.test.ts",
+    "test": "npm run test:repository && npm run test:assets && npm run test:notes-ipc && npm run test:note-list && npm run test:autosave && npm run test:markdown-preview && npm run test:image-insertion",
+    "test:assets": "node scripts/run-electron-node.mjs --import tsx --test tests/asset-storage.test.ts tests/asset-handlers.test.ts tests/asset-protocol.test.ts",
+    "test:autosave": "node --import tsx --test tests/autosave.test.ts",
+    "test:markdown-preview": "node --preserve-symlinks --preserve-symlinks-main --import tsx --test tests/markdown-preview.test.tsx",
+    "test:image-insertion": "node --import tsx --test tests/image-insertion.test.ts",
+    "test:note-list": "node --import tsx --test tests/note-list.test.ts",
+    "test:notes-ipc": "node scripts/run-electron-node.mjs --import tsx --test tests/note-handlers.test.ts",
     "test:repository": "node scripts/run-electron-node.mjs --import tsx --test tests/note-repository.test.ts",
     "package": "npm run build && electron-builder --dir",
     "package:win": "npm run build && electron-builder --win"
@@ -23,7 +28,9 @@
   },
   "dependencies": {
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

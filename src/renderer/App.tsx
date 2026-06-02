@@ -1,32 +1,30 @@
-import { APP_NAME } from '@shared/constants'
+import { AppSidebar } from './components/AppSidebar'
+import { WorkspaceShell } from './components/WorkspaceShell'
+import { useNoteList } from './notes/useNoteList'
 
 export function App(): React.JSX.Element {
-  const platform = window.desktop?.platform ?? 'browser-preview'
+  const noteList = useNoteList()
 
   return (
     <main className="app-shell">
-      <section className="placeholder-card" aria-labelledby="app-title">
-        <p className="eyebrow">Desktop scaffold ready</p>
-        <h1 id="app-title">{APP_NAME}</h1>
-        <p className="description">
-          Electron, React, TypeScript, and Vite are connected. The note
-          workspace will grow here in the next tasks.
-        </p>
-        <dl className="runtime-details">
-          <div>
-            <dt>Renderer</dt>
-            <dd>React</dd>
-          </div>
-          <div>
-            <dt>Desktop shell</dt>
-            <dd>Electron</dd>
-          </div>
-          <div>
-            <dt>Platform</dt>
-            <dd>{platform}</dd>
-          </div>
-        </dl>
-      </section>
+      <AppSidebar
+        notes={noteList.visibleNotes}
+        noteCount={noteList.notes.length}
+        isLoading={noteList.isLoading}
+        statusMessage={noteList.statusMessage}
+        searchQuery={noteList.searchQuery}
+        selectedNoteId={noteList.selectedNoteId}
+        onCreateNote={noteList.createNote}
+        onSearchQueryChange={noteList.setSearchQuery}
+        onSelectNote={noteList.selectNote}
+      />
+      <WorkspaceShell
+        selectedNote={noteList.selectedNote}
+        statusMessage={noteList.statusMessage}
+        onCreateNote={noteList.createNote}
+        onContentChange={noteList.updateSelectedNoteContent}
+        onDeleteNote={noteList.deleteSelectedNote}
+      />
     </main>
   )
 }

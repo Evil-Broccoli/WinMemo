@@ -2,11 +2,24 @@ import { join } from 'node:path'
 import { app, BrowserWindow, shell } from 'electron'
 import { APP_NAME } from '@shared/constants'
 import { initializeAssetStorage } from './assets/asset-storage'
+import { registerAssetIpcHandlers } from './assets/register-asset-ipc'
+import {
+  registerAssetProtocolHandler,
+  registerAssetProtocolScheme
+} from './assets/register-asset-protocol'
+import { registerNoteIpcHandlers } from './notes/register-note-ipc'
 import {
   closeDatabase,
   getDatabasePath,
   initializeDatabase
 } from './persistence/database'
+import { NoteRepository } from './persistence/note-repository'
+
+let disposeAssetIpcHandlers: (() => void) | undefined
+let disposeAssetProtocolHandler: (() => void) | undefined
+let disposeNoteIpcHandlers: (() => void) | undefined
+
+registerAssetProtocolScheme()
 
 function createMainWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -18,7 +31,7 @@ function createMainWindow(): BrowserWindow {
     show: false,
     backgroundColor: '#f4f5f7',
     webPreferences: {
-      preload: join(__dirname, '../preload/index.mjs'),
+      preload: join(__dirname, '../preload/index.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
@@ -50,8 +63,11 @@ app.whenReady().then(() => {
   const userDataPath =
     process.env.WINDOWS_MEMO_USER_DATA_PATH ?? app.getPath('userData')
 
-  initializeDatabase(getDatabasePath(userDataPath))
-  initializeAssetStorage(userDataPath)
+  const database = initializeDatabase(getDatabasePath(userDataPath))
+  const assetStorage = initializeAssetStorage(userDataPath)
+  disposeAssetIpcHandlers = registerAssetIpcHandlers(assetStorage)
+  disposeAssetProtocolHandler = registerAssetProtocolHandler(assetStorage)
+  disposeNoteIpcHandlers = registerNoteIpcHandlers(new NoteRepository(database))
   createMainWindow()
 
   app.on('activate', () => {
@@ -62,6 +78,9 @@ app.whenReady().then(() => {
 })
 
 app.on('will-quit', () => {
+  disposeAssetIpcHandlers?.()
+  disposeAssetProtocolHandler?.()
+  disposeNoteIpcHandlers?.()
   closeDatabase()
 })
 

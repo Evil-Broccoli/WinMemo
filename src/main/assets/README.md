@@ -24,10 +24,17 @@ Notes store managed image references in this form:
 windows-memo-asset://local/<sha256>.<extension>
 ```
 
-The preview protocol handler added with the image-rendering flow should resolve
-URLs through `AssetStorageService.resolveMarkdownUrl()`. It must not translate
-arbitrary renderer URLs into filesystem paths.
+The preview protocol handler resolves URLs through
+`AssetStorageService.resolveMarkdownUrl()`. It does not translate arbitrary
+renderer URLs into filesystem paths.
 
 If the asset URL is invalid, the file is missing, or the managed path is no
 longer a regular file, the resolver returns `undefined`. Preview rendering
-should degrade to alt text or a missing-image placeholder without crashing.
+degrades to alt text or a missing-image placeholder without crashing.
+
+## Renderer Insertion
+
+The Markdown editor accepts pasted or dropped PNG, JPEG, GIF, and WebP files.
+It sends bytes through the typed `assets.saveImage()` preload API and inserts
+the returned managed URL into note Markdown. Renderer code never receives an
+external file path or a managed asset directory path.

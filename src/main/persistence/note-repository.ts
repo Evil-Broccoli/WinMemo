@@ -1,6 +1,11 @@
 import { randomUUID } from 'node:crypto'
 import type { DatabaseSync } from 'node:sqlite'
 import {
+  DEFAULT_NOTE_TITLE,
+  createNotePreviewText,
+  deriveNoteTitle
+} from '../../shared/note-content'
+import {
   DEFAULT_NOTE_SOURCE_TYPE,
   NOTE_SOURCE_TYPES,
   type Note,
@@ -11,22 +16,15 @@ import {
   type NoteUpdateInput
 } from '../../shared/notes'
 
-export const DEFAULT_NOTE_TITLE = 'Untitled note'
-export const NOTE_PREVIEW_MAX_LENGTH = 160
-
-const NOTE_TITLE_MAX_LENGTH = 80
+export {
+  DEFAULT_NOTE_TITLE,
+  NOTE_PREVIEW_MAX_LENGTH,
+  createNotePreviewText
+} from '../../shared/note-content'
 
 interface NoteRepositoryDependencies {
   readonly createId?: () => NoteId
   readonly now?: () => Date
-}
-
-function truncateText(value: string, maxLength: number): string {
-  if (value.length <= maxLength) {
-    return value
-  }
-
-  return `${value.slice(0, maxLength - 3).trimEnd()}...`
 }
 
 function collapseWhitespace(value: string): string {
@@ -44,24 +42,6 @@ function stripMarkdown(value: string): string {
     .replace(/<[^>]+>/g, '')
     .replace(/[*_~]+/g, '')
     .replace(/\\([\\`*_[\]{}()#+\-.!>])/g, '$1')
-}
-
-export function createNotePreviewText(contentMarkdown: string): string {
-  return truncateText(
-    collapseWhitespace(stripMarkdown(contentMarkdown)),
-    NOTE_PREVIEW_MAX_LENGTH
-  )
-}
-
-export function deriveNoteTitle(contentMarkdown: string): string {
-  const firstReadableLine = contentMarkdown
-    .split(/\r?\n/)
-    .map((line) => collapseWhitespace(stripMarkdown(line)))
-    .find(Boolean)
-
-  return firstReadableLine
-    ? truncateText(firstReadableLine, NOTE_TITLE_MAX_LENGTH)
-    : DEFAULT_NOTE_TITLE
 }
 
 function normalizeTitle(title: string | undefined, contentMarkdown: string) {
