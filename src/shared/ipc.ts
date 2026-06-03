@@ -46,6 +46,9 @@ export const IPC_INVOKE_CHANNELS = {
 } as const
 
 export const IPC_EVENT_CHANNELS = {
+  notes: {
+    changed: 'notes:changed'
+  },
   quickNote: {
     closeRequested: 'quick-note:close-requested'
   }
@@ -107,6 +110,7 @@ export interface IpcInvokeChannelMap {
 }
 
 export interface IpcEventChannelMap {
+  'notes:changed': NoteSummary
   'quick-note:close-requested': QuickNoteCloseRequest
 }
 
@@ -137,6 +141,9 @@ export interface DesktopBridge {
       input: NoteUpdateInput
     ) => Promise<IpcInvokeResponse<'notes:update'>>
     readonly delete: (id: NoteId) => Promise<IpcInvokeResponse<'notes:delete'>>
+    readonly onChanged: (
+      listener: (summary: NoteSummary) => void
+    ) => Unsubscribe
   }
   readonly documents: {
     readonly importNotes: () => Promise<

@@ -74,6 +74,25 @@ test('converts and moves updated note summaries to the front of the list', () =>
   ])
 })
 
+test('moves changed note summaries from cross-window events to the front', () => {
+  const currentSummary = createNoteSummary('note-1', 'Older', 'Old preview')
+  const changedSummary = {
+    ...currentSummary,
+    title: 'Quick capture',
+    previewText: 'Saved from the floating window',
+    sourceType: 'quick-note' as const
+  }
+  const summaries = [
+    currentSummary,
+    createNoteSummary('note-2', 'Second', 'Another note')
+  ]
+
+  assert.deepEqual(upsertNoteSummary(summaries, changedSummary), [
+    changedSummary,
+    summaries[1]
+  ])
+})
+
 test('filters note summaries by trimmed case-insensitive title or preview text', () => {
   assert.deepEqual(filterNoteSummaries(notes, '  PROJECT '), [
     notes[0],

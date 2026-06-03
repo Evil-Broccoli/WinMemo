@@ -5,6 +5,16 @@ import { useNoteList } from './notes/useNoteList'
 export function App(): React.JSX.Element {
   const noteList = useNoteList()
 
+  const openQuickNote = (): void => {
+    void (async () => {
+      const result = await window.desktop?.quickNote.open()
+
+      if (result && !result.ok) {
+        window.alert(result.error.message)
+      }
+    })()
+  }
+
   return (
     <main className="app-shell">
       <AppSidebar
@@ -15,6 +25,7 @@ export function App(): React.JSX.Element {
         searchQuery={noteList.searchQuery}
         selectedNoteId={noteList.selectedNoteId}
         onCreateNote={noteList.createNote}
+        onOpenQuickNote={openQuickNote}
         onSearchQueryChange={noteList.setSearchQuery}
         onSelectNote={noteList.selectNote}
       />

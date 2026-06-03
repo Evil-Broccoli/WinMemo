@@ -227,6 +227,17 @@ export function useNoteList(): NoteListState {
     }
   }, [showError])
 
+  useEffect(() => {
+    const unsubscribe = window.desktop?.notes.onChanged((summary) => {
+      setNotes((currentNotes) => upsertNoteSummary(currentNotes, summary))
+      setStatusMessage('Stored on this device')
+    })
+
+    return () => {
+      unsubscribe?.()
+    }
+  }, [])
+
   const createNote = useCallback(() => {
     const sequence = selectionSequence.current + 1
 

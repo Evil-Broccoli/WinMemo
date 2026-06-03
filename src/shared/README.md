@@ -62,7 +62,7 @@ payloads before passing them to services.
 The current draft exposes:
 
 - `notes.list()`, `notes.get(id)`, `notes.create(input)`,
-  `notes.update(input)`, and `notes.delete(id)`
+  `notes.update(input)`, `notes.delete(id)`, and `notes.onChanged(listener)`
 - `documents.importNotes()` and `documents.exportNote(input)`
 - `assets.saveImage(input)`
 - `quickNote.open()`, `quickNote.save(input)`,

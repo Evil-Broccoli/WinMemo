@@ -17,11 +17,13 @@ export function toNoteSummary(note: Note): NoteSummary {
 
 export function upsertNoteSummary(
   notes: readonly NoteSummary[],
-  note: Note
+  note: Note | NoteSummary
 ): readonly NoteSummary[] {
+  const nextSummary = 'contentMarkdown' in note ? toNoteSummary(note) : note
+
   return [
-    toNoteSummary(note),
-    ...notes.filter((summary) => summary.id !== note.id)
+    nextSummary,
+    ...notes.filter((summary) => summary.id !== nextSummary.id)
   ]
 }
 
