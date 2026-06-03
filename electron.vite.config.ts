@@ -43,6 +43,14 @@ export default defineConfig({
   },
   renderer: {
     root: resolve(projectRoot, 'src/renderer'),
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve(projectRoot, 'src/renderer/index.html'),
+          quickNote: resolve(projectRoot, 'src/renderer/quick-note.html')
+        }
+      }
+    },
     resolve: {
       alias: sourceAliases.renderer
     },

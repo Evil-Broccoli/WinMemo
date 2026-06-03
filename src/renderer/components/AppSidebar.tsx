@@ -11,6 +11,7 @@ interface AppSidebarProps {
   readonly searchQuery: string
   readonly selectedNoteId: NoteId | undefined
   readonly onCreateNote: () => void
+  readonly onOpenQuickNote: () => void
   readonly onSearchQueryChange: (query: string) => void
   readonly onSelectNote: (id: NoteId) => void
 }
@@ -53,6 +54,7 @@ export function AppSidebar({
   searchQuery,
   selectedNoteId,
   onCreateNote,
+  onOpenQuickNote,
   onSearchQueryChange,
   onSelectNote
 }: AppSidebarProps): React.JSX.Element {
@@ -71,6 +73,15 @@ export function AppSidebar({
         <button className="primary-button" type="button" onClick={onCreateNote}>
           <PlusIcon size={15} />
           <span>New note</span>
+        </button>
+
+        <button
+          className="secondary-button sidebar-quick-button"
+          type="button"
+          onClick={onOpenQuickNote}
+        >
+          <NoteIcon size={15} />
+          <span>Quick note</span>
         </button>
 
         <label className="search-shell">

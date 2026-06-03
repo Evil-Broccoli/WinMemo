@@ -1,3 +1,5 @@
+import React from 'react'
+
 interface IconProps {
   readonly size?: number
 }
@@ -66,6 +68,26 @@ export function PlusIcon({ size = 20 }: IconProps): React.JSX.Element {
   )
 }
 
+export function PinIcon({ size = 20 }: IconProps): React.JSX.Element {
+  return (
+    <svg
+      aria-hidden="true"
+      className="icon"
+      fill="none"
+      viewBox="0 0 24 24"
+      style={getIconStyle(size)}
+    >
+      <path
+        d="m9.25 13.75-4.5 4.5m5.55-16.1 7.55 7.55m-5.7-5.85-4.8 4.8c-.55.55-.36 1.49.37 1.74l3.05 1.01 1.01 3.05c.25.73 1.19.92 1.74.37l4.8-4.8"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+    </svg>
+  )
+}
+
 export function SearchIcon({ size = 20 }: IconProps): React.JSX.Element {
   return (
     <svg
@@ -107,6 +129,25 @@ export function TrashIcon({ size = 20 }: IconProps): React.JSX.Element {
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="1.5"
+      />
+    </svg>
+  )
+}
+
+export function XIcon({ size = 20 }: IconProps): React.JSX.Element {
+  return (
+    <svg
+      aria-hidden="true"
+      className="icon"
+      fill="none"
+      viewBox="0 0 24 24"
+      style={getIconStyle(size)}
+    >
+      <path
+        d="m6.75 6.75 10.5 10.5M17.25 6.75 6.75 17.25"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.7"
       />
     </svg>
   )

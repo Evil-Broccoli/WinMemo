@@ -29,7 +29,24 @@ const desktopBridge = {
     get: (id) => invoke(IPC_INVOKE_CHANNELS.notes.get, { id }),
     create: (input = {}) => invoke(IPC_INVOKE_CHANNELS.notes.create, input),
     update: (input) => invoke(IPC_INVOKE_CHANNELS.notes.update, input),
-    delete: (id) => invoke(IPC_INVOKE_CHANNELS.notes.delete, { id })
+    delete: (id) => invoke(IPC_INVOKE_CHANNELS.notes.delete, { id }),
+    onChanged: (listener) => {
+      const handleNoteChanged = (
+        _event: IpcRendererEvent,
+        summary: Parameters<typeof listener>[0]
+      ): void => {
+        listener(summary)
+      }
+
+      ipcRenderer.on(IPC_EVENT_CHANNELS.notes.changed, handleNoteChanged)
+
+      return () => {
+        ipcRenderer.removeListener(
+          IPC_EVENT_CHANNELS.notes.changed,
+          handleNoteChanged
+        )
+      }
+    }
   },
   documents: {
     importNotes: () => invoke(IPC_INVOKE_CHANNELS.documents.importNotes),
