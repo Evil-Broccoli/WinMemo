@@ -6,6 +6,11 @@ import {
   useRef,
   useState
 } from 'react'
+import type {
+  ExportNoteResult,
+  ImportFileSelection,
+  ImportNotesResult
+} from '@shared/documents'
 import type { DesktopBridge } from '@shared/ipc'
 import type { Note, NoteId, NoteSummary } from '@shared/notes'
 import { AUTOSAVE_DELAY_MS, createAutosaveScheduler } from './autosave'
@@ -30,6 +35,8 @@ interface NoteListState {
   readonly statusMessage: string
   readonly createNote: () => void
   readonly deleteSelectedNote: () => void
+  readonly exportSelectedNote: () => void
+  readonly importNotes: () => void
   readonly selectNote: (id: NoteId) => void
   readonly setSearchQuery: (query: string) => void
   readonly updateSelectedNoteContent: (contentMarkdown: string) => void
@@ -39,10 +46,52 @@ function getNotesBridge(): DesktopBridge['notes'] | undefined {
   return window.desktop?.notes
 }
 
+function getDocumentsBridge(): DesktopBridge['documents'] | undefined {
+  return window.desktop?.documents
+}
+
 function getErrorMessage(error: unknown): string {
   return error instanceof Error
     ? error.message
     : 'An unexpected error occurred.'
+}
+
+function formatImportFileCount(count: number): string {
+  return `${count} file${count === 1 ? '' : 's'}`
+}
+
+function formatSelectedImportMessage(
+  files: readonly ImportFileSelection[]
+): string {
+  if (files.length === 1) {
+    return `Selected ${files[0]?.fileName ?? 'file'} for import`
+  }
+
+  return `Selected ${formatImportFileCount(files.length)} for import`
+}
+
+function formatImportResultMessage(result: ImportNotesResult): string {
+  if (result.status === 'selected') {
+    return formatSelectedImportMessage(result.files)
+  }
+
+  if (result.status === 'imported') {
+    return `Imported ${formatImportFileCount(result.notes.length)}`
+  }
+
+  return 'Stored on this device'
+}
+
+function formatExportResultMessage(result: ExportNoteResult): string {
+  if (result.status === 'cancelled') {
+    return 'Stored on this device'
+  }
+
+  if (result.status === 'selected') {
+    return `Selected .${result.format} export destination`
+  }
+
+  return `Exported note as .${result.format}`
 }
 
 export function useNoteList(): NoteListState {
@@ -416,6 +465,104 @@ export function useNoteList(): NoteListState {
     void deleteNote()
   }, [autosaveScheduler, showError])
 
+  const importNotes = useCallback(() => {
+    const sequence = selectionSequence.current + 1
+
+    selectionSequence.current = sequence
+
+    async function importSelectedFiles(): Promise<void> {
+      if (
+        !(await flushPendingSave()) ||
+        sequence !== selectionSequence.current
+      ) {
+        return
+      }
+
+      const documentsBridge = getDocumentsBridge()
+
+      if (!documentsBridge) {
+        showError('Desktop document import is unavailable.')
+        return
+      }
+
+      setStatusMessage('Choosing file...')
+
+      try {
+        const result = await documentsBridge.importNotes()
+
+        if (sequence !== selectionSequence.current) {
+          return
+        }
+
+        if (!result.ok) {
+          showError(result.error.message)
+          return
+        }
+
+        const importedNotes =
+          result.value.status === 'imported' ? result.value.notes : undefined
+
+        if (importedNotes) {
+          setNotes((currentNotes) =>
+            importedNotes.reduce<readonly NoteSummary[]>(
+              (nextNotes, note) => upsertNoteSummary(nextNotes, note),
+              currentNotes
+            )
+          )
+        }
+
+        setStatusMessage(formatImportResultMessage(result.value))
+      } catch (error) {
+        if (sequence === selectionSequence.current) {
+          showError(getErrorMessage(error))
+        }
+      }
+    }
+
+    void importSelectedFiles()
+  }, [flushPendingSave, showError])
+
+  const exportSelectedNote = useCallback(() => {
+    async function exportNote(): Promise<void> {
+      if (!(await flushPendingSave())) {
+        return
+      }
+
+      const noteToExport = selectedNoteRef.current
+
+      if (!noteToExport) {
+        return
+      }
+
+      const documentsBridge = getDocumentsBridge()
+
+      if (!documentsBridge) {
+        showError('Desktop document export is unavailable.')
+        return
+      }
+
+      setStatusMessage('Choosing export location...')
+
+      try {
+        const result = await documentsBridge.exportNote({
+          noteId: noteToExport.id,
+          format: 'md'
+        })
+
+        if (!result.ok) {
+          showError(result.error.message)
+          return
+        }
+
+        setStatusMessage(formatExportResultMessage(result.value))
+      } catch (error) {
+        showError(getErrorMessage(error))
+      }
+    }
+
+    void exportNote()
+  }, [flushPendingSave, showError])
+
   return {
     notes,
     visibleNotes,
@@ -426,6 +573,8 @@ export function useNoteList(): NoteListState {
     statusMessage,
     createNote,
     deleteSelectedNote,
+    exportSelectedNote,
+    importNotes,
     selectNote,
     setSearchQuery,
     updateSelectedNoteContent

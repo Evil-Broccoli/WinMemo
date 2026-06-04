@@ -10,9 +10,18 @@ export type ImportFormat = DocumentFormat
 
 export type ExportFormat = DocumentFormat
 
+export interface ImportFileSelection {
+  readonly fileName: string
+  readonly format: ImportFormat
+}
+
 export type ImportNotesResult =
   | {
       readonly status: 'cancelled'
+    }
+  | {
+      readonly status: 'selected'
+      readonly files: readonly ImportFileSelection[]
     }
   | {
       readonly status: 'imported'
@@ -27,6 +36,11 @@ export interface ExportNoteInput {
 export type ExportNoteResult =
   | {
       readonly status: 'cancelled'
+    }
+  | {
+      readonly status: 'selected'
+      readonly filePath: string
+      readonly format: ExportFormat
     }
   | {
       readonly status: 'exported'

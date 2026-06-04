@@ -9,6 +9,7 @@ import {
   registerAssetProtocolHandler,
   registerAssetProtocolScheme
 } from './assets/register-asset-protocol'
+import { registerDocumentIpcHandlers } from './documents/register-document-ipc'
 import { registerNoteIpcHandlers } from './notes/register-note-ipc'
 import {
   closeDatabase,
@@ -25,6 +26,7 @@ import type { DesktopWindowRegistry } from './windows/window-registry'
 
 let disposeAssetIpcHandlers: (() => void) | undefined
 let disposeAssetProtocolHandler: (() => void) | undefined
+let disposeDocumentIpcHandlers: (() => void) | undefined
 let disposeNoteIpcHandlers: (() => void) | undefined
 let disposeQuickNoteIpcHandlers: (() => void) | undefined
 let disposeQuickNoteGlobalShortcut: (() => void) | undefined
@@ -116,6 +118,10 @@ app.whenReady().then(() => {
 
   disposeAssetIpcHandlers = registerAssetIpcHandlers(assetStorage)
   disposeAssetProtocolHandler = registerAssetProtocolHandler(assetStorage)
+  disposeDocumentIpcHandlers = registerDocumentIpcHandlers(
+    noteRepository,
+    assetStorage
+  )
   disposeNoteIpcHandlers = registerNoteIpcHandlers(noteRepository)
   disposeQuickNoteIpcHandlers = registerQuickNoteIpcHandlers(
     quickNoteWindow,
@@ -149,6 +155,7 @@ app.whenReady().then(() => {
 app.on('will-quit', () => {
   disposeAssetIpcHandlers?.()
   disposeAssetProtocolHandler?.()
+  disposeDocumentIpcHandlers?.()
   disposeNoteIpcHandlers?.()
   disposeQuickNoteIpcHandlers?.()
   disposeQuickNoteGlobalShortcut?.()

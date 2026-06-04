@@ -29,6 +29,46 @@ export function MoreHorizontalIcon({
   )
 }
 
+export function ExportIcon({ size = 20 }: IconProps): React.JSX.Element {
+  return (
+    <svg
+      aria-hidden="true"
+      className="icon"
+      fill="none"
+      viewBox="0 0 24 24"
+      style={getIconStyle(size)}
+    >
+      <path
+        d="M12 19.5V11.25m0 0-3.25 3.25M12 11.25l3.25 3.25M5.75 9.75V6.5a2 2 0 0 1 2-2h8.5a2 2 0 0 1 2 2v3.25"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+    </svg>
+  )
+}
+
+export function ImportIcon({ size = 20 }: IconProps): React.JSX.Element {
+  return (
+    <svg
+      aria-hidden="true"
+      className="icon"
+      fill="none"
+      viewBox="0 0 24 24"
+      style={getIconStyle(size)}
+    >
+      <path
+        d="M12 4.5v8.25m0 0 3.25-3.25M12 12.75 8.75 9.5M5.75 14.25v3.25a2 2 0 0 0 2 2h8.5a2 2 0 0 0 2-2v-3.25"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+    </svg>
+  )
+}
+
 export function NoteIcon({ size = 20 }: IconProps): React.JSX.Element {
   return (
     <svg

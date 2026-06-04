@@ -25,6 +25,7 @@ export function App(): React.JSX.Element {
         searchQuery={noteList.searchQuery}
         selectedNoteId={noteList.selectedNoteId}
         onCreateNote={noteList.createNote}
+        onImportNotes={noteList.importNotes}
         onOpenQuickNote={openQuickNote}
         onSearchQueryChange={noteList.setSearchQuery}
         onSelectNote={noteList.selectNote}
@@ -35,6 +36,7 @@ export function App(): React.JSX.Element {
         onCreateNote={noteList.createNote}
         onContentChange={noteList.updateSelectedNoteContent}
         onDeleteNote={noteList.deleteSelectedNote}
+        onExportNote={noteList.exportSelectedNote}
       />
     </main>
   )
