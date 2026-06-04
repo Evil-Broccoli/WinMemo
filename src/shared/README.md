@@ -21,6 +21,9 @@ Electron main process, preload bridge, and React renderer.
 Document format values omit the leading dot: `txt`, `md`, and `docx`.
 Legacy `doc` files are intentionally unsupported and should produce a clear
 conversion message.
+Supported import files are converted into notes by the main process. Text and
+Markdown files are read as UTF-8 text. DOCX files are converted to basic
+Markdown, with supported embedded images copied into managed asset storage.
 
 ## Assets
 
@@ -70,5 +73,7 @@ The current draft exposes:
 - `window.getState()` and `window.setAlwaysOnTop(enabled)`
 
 Native import and export dialog cancellations return `status: 'cancelled'`
-rather than an application error. Window state APIs operate on the sending
-renderer window; renderers cannot target an arbitrary Electron window ID.
+rather than an application error. Successful imports return lightweight note
+summaries for the notes that were created. Window state APIs operate on the
+sending renderer window; renderers cannot target an arbitrary Electron window
+ID.

@@ -1,5 +1,6 @@
+import React from 'react'
 import type { Note } from '@shared/notes'
-import { MoreHorizontalIcon, NoteIcon, PlusIcon, TrashIcon } from './icons'
+import { ExportIcon, NoteIcon, PlusIcon, TrashIcon } from './icons'
 import { MarkdownEditor } from './MarkdownEditor'
 import { MarkdownPreview } from './MarkdownPreview'
 
@@ -9,6 +10,7 @@ interface WorkspaceShellProps {
   readonly onCreateNote: () => void
   readonly onContentChange: (contentMarkdown: string) => void
   readonly onDeleteNote: () => void
+  readonly onExportNote: () => void
 }
 
 export function WorkspaceShell({
@@ -16,7 +18,8 @@ export function WorkspaceShell({
   statusMessage,
   onCreateNote,
   onContentChange,
-  onDeleteNote
+  onDeleteNote,
+  onExportNote
 }: WorkspaceShellProps): React.JSX.Element {
   const handleDeleteNote = (): void => {
     if (
@@ -37,23 +40,27 @@ export function WorkspaceShell({
 
         <div className="workspace-actions">
           {selectedNote ? (
-            <button
-              className="icon-button icon-button-danger"
-              type="button"
-              aria-label="Delete note"
-              onClick={handleDeleteNote}
-            >
-              <TrashIcon size={17} />
-            </button>
+            <>
+              <button
+                className="icon-button"
+                type="button"
+                aria-label="Export note"
+                title="Export note"
+                onClick={onExportNote}
+              >
+                <ExportIcon size={17} />
+              </button>
+              <button
+                className="icon-button icon-button-danger"
+                type="button"
+                aria-label="Delete note"
+                title="Delete note"
+                onClick={handleDeleteNote}
+              >
+                <TrashIcon size={17} />
+              </button>
+            </>
           ) : null}
-          <button
-            className="icon-button"
-            type="button"
-            aria-label="More note actions"
-            disabled
-          >
-            <MoreHorizontalIcon size={18} />
-          </button>
         </div>
       </header>
 

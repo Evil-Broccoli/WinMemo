@@ -752,7 +752,8 @@ button:not(:disabled) {
   background: var(--color-surface-muted);
 }
 
-.sidebar-quick-button {
+.sidebar-quick-button,
+.sidebar-import-button {
   width: 100%;
   min-height: 34px;
   margin-top: 8px;
@@ -1069,7 +1070,8 @@ button:not(:disabled) {
     padding: 0 12px;
   }
 
-  .sidebar-quick-button {
+  .sidebar-quick-button,
+  .sidebar-import-button {
     grid-column: 1 / -1;
     margin-top: 0;
   }

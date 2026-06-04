@@ -18,10 +18,15 @@ const sourceAliases = {
     '@shared': resolve(projectRoot, 'src/shared')
   }
 }
+const bundledMainDependencies = ['mammoth']
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [
+      externalizeDepsPlugin({
+        exclude: bundledMainDependencies
+      })
+    ],
     resolve: {
       alias: sourceAliases.main
     }

@@ -1,7 +1,8 @@
-import { APP_NAME } from '@shared/constants'
+import React from 'react'
 import type { NoteId, NoteSummary } from '@shared/notes'
+import { APP_NAME } from '../../shared/constants'
 import { formatNoteUpdatedAt } from '../notes/note-list'
-import { NoteIcon, PlusIcon, SearchIcon } from './icons'
+import { ImportIcon, NoteIcon, PlusIcon, SearchIcon } from './icons'
 
 interface AppSidebarProps {
   readonly notes: readonly NoteSummary[]
@@ -11,6 +12,7 @@ interface AppSidebarProps {
   readonly searchQuery: string
   readonly selectedNoteId: NoteId | undefined
   readonly onCreateNote: () => void
+  readonly onImportNotes: () => void
   readonly onOpenQuickNote: () => void
   readonly onSearchQueryChange: (query: string) => void
   readonly onSelectNote: (id: NoteId) => void
@@ -54,6 +56,7 @@ export function AppSidebar({
   searchQuery,
   selectedNoteId,
   onCreateNote,
+  onImportNotes,
   onOpenQuickNote,
   onSearchQueryChange,
   onSelectNote
@@ -82,6 +85,15 @@ export function AppSidebar({
         >
           <NoteIcon size={15} />
           <span>Quick note</span>
+        </button>
+
+        <button
+          className="secondary-button sidebar-import-button"
+          type="button"
+          onClick={onImportNotes}
+        >
+          <ImportIcon size={15} />
+          <span>Import</span>
         </button>
 
         <label className="search-shell">
