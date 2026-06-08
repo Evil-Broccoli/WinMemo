@@ -19,18 +19,22 @@ export function App(): React.JSX.Element {
     <main className="app-shell">
       <AppSidebar
         notes={noteList.visibleNotes}
-        noteCount={noteList.notes.length}
+        noteCount={noteList.visibleNotes.length}
         isLoading={noteList.isLoading}
+        loadErrorMessage={noteList.loadErrorMessage}
         statusMessage={noteList.statusMessage}
         searchQuery={noteList.searchQuery}
         selectedNoteId={noteList.selectedNoteId}
         onCreateNote={noteList.createNote}
         onImportNotes={noteList.importNotes}
         onOpenQuickNote={openQuickNote}
+        onRetryLoadNotes={noteList.reloadNotes}
         onSearchQueryChange={noteList.setSearchQuery}
         onSelectNote={noteList.selectNote}
       />
       <WorkspaceShell
+        isLoading={noteList.isLoading}
+        loadErrorMessage={noteList.loadErrorMessage}
         selectedNote={noteList.selectedNote}
         statusMessage={noteList.statusMessage}
         onCreateNote={noteList.createNote}

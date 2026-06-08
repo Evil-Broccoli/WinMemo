@@ -11,6 +11,26 @@ function getIconStyle(size: number): React.CSSProperties {
   }
 }
 
+export function AlertIcon({ size = 20 }: IconProps): React.JSX.Element {
+  return (
+    <svg
+      aria-hidden="true"
+      className="icon"
+      fill="none"
+      viewBox="0 0 24 24"
+      style={getIconStyle(size)}
+    >
+      <path
+        d="M12 8.25v4.25m0 3.25h.01M10.2 4.75 3.35 16.8a2 2 0 0 0 1.74 2.95h13.82a2 2 0 0 0 1.74-2.95L13.8 4.75a2.08 2.08 0 0 0-3.6 0Z"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+    </svg>
+  )
+}
+
 export function MoreHorizontalIcon({
   size = 20
 }: IconProps): React.JSX.Element {

@@ -11,6 +11,7 @@ import type { AssetStorageService } from '../assets/asset-storage'
 import type { NoteRepository } from '../persistence/note-repository'
 import { createDocxMarkdownImporter } from './docx-import'
 import { createDocumentHandlers } from './document-handlers'
+import { createExportNoteFile } from './note-export'
 
 const IMPORT_DIALOG_OPTIONS: OpenDialogOptions = {
   title: 'Import notes',
@@ -133,6 +134,7 @@ export function registerDocumentIpcHandlers(
 ): () => void {
   const channels = IPC_INVOKE_CHANNELS.documents
   const importDocxFile = createDocxMarkdownImporter(assetStorage)
+  const exportNoteFile = createExportNoteFile(assetStorage)
 
   ipcMain.handle(channels.importNotes, (event) => {
     const parentWindow = getParentWindow(event)
@@ -141,7 +143,8 @@ export function registerDocumentIpcHandlers(
         showImportFilePicker: () => showImportFilePicker(parentWindow)
       },
       repository,
-      importDocxFile
+      importDocxFile,
+      exportNoteFile
     })
 
     return handlers.importNotes()

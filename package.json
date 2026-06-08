@@ -17,7 +17,7 @@
     "test:autosave": "node --import tsx --test tests/autosave.test.ts",
     "test:markdown-preview": "node --preserve-symlinks --preserve-symlinks-main --import tsx --test tests/markdown-preview.test.tsx",
     "test:image-insertion": "node --import tsx --test tests/image-insertion.test.ts",
-    "test:documents": "node --import tsx --test tests/document-handlers.test.ts tests/docx-import.test.ts",
+    "test:documents": "node --import tsx --test tests/document-handlers.test.ts tests/docx-import.test.ts tests/docx-export.test.ts",
     "test:import-ui": "node --import tsx --test tests/import-dialog-ui.test.tsx",
     "test:note-list": "node --import tsx --test tests/note-list.test.ts",
     "test:notes-ipc": "node scripts/run-electron-node.mjs --import tsx --test tests/note-handlers.test.ts",
@@ -33,6 +33,7 @@
     "node": "^20.17.0 || >=22.0.0"
   },
   "dependencies": {
+    "docx": "^9.7.1",
     "mammoth": "^1.12.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

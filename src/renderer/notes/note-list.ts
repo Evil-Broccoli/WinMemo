@@ -4,6 +4,8 @@ import {
   deriveNoteTitle
 } from '../../shared/note-content'
 
+export type StatusTone = 'activity' | 'danger' | 'neutral' | 'success'
+
 export function toNoteSummary(note: Note): NoteSummary {
   return {
     id: note.id,
@@ -57,6 +59,43 @@ export function filterNoteSummaries<Summary extends NoteSummary>(
 
     return searchableText.includes(normalizedQuery)
   })
+}
+
+export function getStatusTone(statusMessage: string): StatusTone {
+  const normalizedMessage = statusMessage.trim().toLocaleLowerCase()
+
+  if (!normalizedMessage) {
+    return 'neutral'
+  }
+
+  if (
+    normalizedMessage.includes('failed') ||
+    normalizedMessage.includes('unavailable') ||
+    normalizedMessage.includes('unable') ||
+    normalizedMessage.includes('cannot') ||
+    normalizedMessage.includes('error')
+  ) {
+    return 'danger'
+  }
+
+  if (
+    normalizedMessage.includes('loading') ||
+    normalizedMessage.includes('saving') ||
+    normalizedMessage.includes('choosing') ||
+    normalizedMessage.startsWith('selected')
+  ) {
+    return 'activity'
+  }
+
+  if (
+    normalizedMessage === 'stored on this device' ||
+    normalizedMessage.startsWith('imported') ||
+    normalizedMessage.startsWith('exported')
+  ) {
+    return 'success'
+  }
+
+  return 'neutral'
 }
 
 export function formatNoteUpdatedAt(

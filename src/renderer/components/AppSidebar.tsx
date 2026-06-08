@@ -1,49 +1,83 @@
 import React from 'react'
 import type { NoteId, NoteSummary } from '@shared/notes'
 import { APP_NAME } from '../../shared/constants'
-import { formatNoteUpdatedAt } from '../notes/note-list'
-import { ImportIcon, NoteIcon, PlusIcon, SearchIcon } from './icons'
+import { formatNoteUpdatedAt, getStatusTone } from '../notes/note-list'
+import {
+  AlertIcon,
+  ImportIcon,
+  NoteIcon,
+  PlusIcon,
+  SearchIcon,
+  XIcon
+} from './icons'
 
 interface AppSidebarProps {
   readonly notes: readonly NoteSummary[]
   readonly noteCount: number
   readonly isLoading: boolean
+  readonly loadErrorMessage: string | undefined
   readonly statusMessage: string
   readonly searchQuery: string
   readonly selectedNoteId: NoteId | undefined
   readonly onCreateNote: () => void
   readonly onImportNotes: () => void
   readonly onOpenQuickNote: () => void
+  readonly onRetryLoadNotes: () => void
   readonly onSearchQueryChange: (query: string) => void
   readonly onSelectNote: (id: NoteId) => void
 }
 
 function SidebarEmptyState({
   hasSearchQuery,
-  isLoading
+  isLoading,
+  loadErrorMessage,
+  onRetryLoadNotes
 }: {
   readonly hasSearchQuery: boolean
   readonly isLoading: boolean
+  readonly loadErrorMessage: string | undefined
+  readonly onRetryLoadNotes: () => void
 }): React.JSX.Element {
+  const hasLoadError = !isLoading && loadErrorMessage !== undefined
+  const emptyStateTitle = isLoading
+    ? 'Loading notes'
+    : hasLoadError
+      ? 'Notes unavailable'
+      : hasSearchQuery
+        ? 'No notes found'
+        : 'No notes yet'
+  const emptyStateDescription = isLoading
+    ? 'Reading saved notes from this device.'
+    : hasLoadError
+      ? (loadErrorMessage ?? 'Notes could not be loaded.')
+      : hasSearchQuery
+        ? 'Try a different search term.'
+        : 'Create your first note to start capturing ideas.'
+
   return (
     <div className="sidebar-empty-state">
-      <span className="empty-state-icon empty-state-icon-small">
-        {hasSearchQuery ? <SearchIcon size={18} /> : <NoteIcon size={18} />}
+      <span
+        className={`empty-state-icon empty-state-icon-small${hasLoadError ? ' empty-state-icon-danger' : ''}`}
+      >
+        {hasLoadError ? (
+          <AlertIcon size={18} />
+        ) : hasSearchQuery ? (
+          <SearchIcon size={18} />
+        ) : (
+          <NoteIcon size={18} />
+        )}
       </span>
-      <h3>
-        {isLoading
-          ? 'Loading notes'
-          : hasSearchQuery
-            ? 'No notes found'
-            : 'No notes yet'}
-      </h3>
-      <p>
-        {isLoading
-          ? 'Reading saved notes from this device.'
-          : hasSearchQuery
-            ? 'Try a different search term.'
-            : 'Create your first note to start capturing ideas.'}
-      </p>
+      <h3>{emptyStateTitle}</h3>
+      <p>{emptyStateDescription}</p>
+      {hasLoadError ? (
+        <button
+          className="secondary-button sidebar-empty-action"
+          type="button"
+          onClick={onRetryLoadNotes}
+        >
+          Retry
+        </button>
+      ) : null}
     </div>
   )
 }
@@ -52,16 +86,22 @@ export function AppSidebar({
   notes,
   noteCount,
   isLoading,
+  loadErrorMessage,
   statusMessage,
   searchQuery,
   selectedNoteId,
   onCreateNote,
   onImportNotes,
   onOpenQuickNote,
+  onRetryLoadNotes,
   onSearchQueryChange,
   onSelectNote
 }: AppSidebarProps): React.JSX.Element {
   const hasSearchQuery = searchQuery.trim().length > 0
+  const statusTone = getStatusTone(statusMessage)
+  const noteCountLabel = hasSearchQuery
+    ? `${noteCount} matching note${noteCount === 1 ? '' : 's'}`
+    : `${noteCount} note${noteCount === 1 ? '' : 's'}`
 
   return (
     <aside className="sidebar" aria-label="Notes sidebar">
@@ -96,22 +136,36 @@ export function AppSidebar({
           <span>Import</span>
         </button>
 
-        <label className="search-shell">
-          <span className="visually-hidden">Search notes</span>
+        <div className="search-shell">
           <SearchIcon size={15} />
+          <label className="visually-hidden" htmlFor="notes-search">
+            Search notes
+          </label>
           <input
+            id="notes-search"
             type="search"
             placeholder="Search notes"
             value={searchQuery}
             onChange={(event) => onSearchQueryChange(event.target.value)}
           />
-        </label>
+          {hasSearchQuery ? (
+            <button
+              className="search-clear-button"
+              type="button"
+              aria-label="Clear search"
+              title="Clear search"
+              onClick={() => onSearchQueryChange('')}
+            >
+              <XIcon size={13} />
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div className="notes-section">
         <div className="section-heading">
-          <h2>All notes</h2>
-          <span aria-label={`${noteCount} notes`}>{noteCount}</span>
+          <h2>{hasSearchQuery ? 'Search results' : 'All notes'}</h2>
+          <span aria-label={noteCountLabel}>{noteCount}</span>
         </div>
 
         {notes.length > 0 ? (
@@ -145,13 +199,15 @@ export function AppSidebar({
           <SidebarEmptyState
             hasSearchQuery={hasSearchQuery}
             isLoading={isLoading}
+            loadErrorMessage={loadErrorMessage}
+            onRetryLoadNotes={onRetryLoadNotes}
           />
         )}
       </div>
 
       <footer className="sidebar-footer">
         <span
-          className={`status-dot${statusMessage === 'Stored on this device' ? '' : ' status-dot-muted'}`}
+          className={`status-dot status-dot-${statusTone}`}
           aria-hidden="true"
         />
         <span>{statusMessage}</span>
