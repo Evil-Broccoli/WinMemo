@@ -4,6 +4,7 @@ import type { NoteSummary } from '../src/shared/notes'
 import {
   filterNoteSummaries,
   formatNoteUpdatedAt,
+  getStatusTone,
   toNoteSummary,
   updateNoteContent,
   upsertNoteSummary
@@ -101,8 +102,20 @@ test('filters note summaries by trimmed case-insensitive title or preview text',
   assert.deepEqual(filterNoteSummaries(notes, 'tea'), [notes[1]])
 })
 
+test('returns no note summaries when the search query has no matches', () => {
+  assert.deepEqual(filterNoteSummaries(notes, 'invoice'), [])
+})
+
 test('returns the original note summaries when the search query is blank', () => {
   assert.equal(filterNoteSummaries(notes, '   '), notes)
+})
+
+test('classifies user-facing status tones for core feedback states', () => {
+  assert.equal(getStatusTone('Stored on this device'), 'success')
+  assert.equal(getStatusTone('Saving...'), 'activity')
+  assert.equal(getStatusTone('Autosave failed: database unavailable'), 'danger')
+  assert.equal(getStatusTone('Selected .md export destination'), 'activity')
+  assert.equal(getStatusTone('Ready'), 'neutral')
 })
 
 test('formats current-day timestamps as time and older timestamps as dates', () => {

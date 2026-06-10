@@ -16,8 +16,9 @@ import type {
   NoteSummary
 } from '../../shared/notes'
 import type { AppErrorCode, AppResult } from '../../shared/result'
-import { createDocxMarkdownImporter } from './docx-import'
 import type { DocxMarkdownImporter } from './docx-import'
+import { createDocxMarkdownImporter } from './docx-import'
+import { createExportNoteFile } from './note-export'
 
 export interface ExportDialogInput {
   readonly note: Note
@@ -255,23 +256,12 @@ async function readImportFileContent(
   return importDocxFile(file.filePath, file.fileName)
 }
 
-async function markExportDestinationSelected({
-  filePath,
-  format
-}: ExportNoteFileInput): Promise<ExportNoteResult> {
-  return {
-    status: 'selected',
-    filePath,
-    format
-  }
-}
-
 export function createDocumentHandlers({
   dialog,
   repository,
   readTextFile = readUtf8TextFile,
   importDocxFile = createDocxMarkdownImporter(),
-  exportNoteFile = markExportDestinationSelected
+  exportNoteFile = createExportNoteFile()
 }: DocumentHandlersDependencies): DocumentHandlers {
   return {
     importNotes: async () => {

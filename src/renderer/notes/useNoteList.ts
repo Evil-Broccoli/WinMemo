@@ -32,11 +32,13 @@ interface NoteListState {
   readonly selectedNoteId: NoteId | undefined
   readonly selectedNote: Note | undefined
   readonly isLoading: boolean
+  readonly loadErrorMessage: string | undefined
   readonly statusMessage: string
   readonly createNote: () => void
   readonly deleteSelectedNote: () => void
   readonly exportSelectedNote: () => void
   readonly importNotes: () => void
+  readonly reloadNotes: () => void
   readonly selectNote: (id: NoteId) => void
   readonly setSearchQuery: (query: string) => void
   readonly updateSelectedNoteContent: (contentMarkdown: string) => void
@@ -100,10 +102,12 @@ export function useNoteList(): NoteListState {
   const [selectedNoteId, setSelectedNoteId] = useState<NoteId>()
   const [selectedNote, setSelectedNote] = useState<Note>()
   const [isLoading, setIsLoading] = useState(true)
+  const [loadErrorMessage, setLoadErrorMessage] = useState<string>()
   const [statusMessage, setStatusMessage] = useState('Loading notes...')
   const selectionSequence = useRef(0)
   const updateSequence = useRef(0)
   const selectedNoteRef = useRef<Note | undefined>(undefined)
+  const isMountedRef = useRef(true)
   const [autosaveScheduler] = useState(() =>
     createAutosaveScheduler<PendingNoteSave>(
       async () => undefined,
@@ -119,6 +123,54 @@ export function useNoteList(): NoteListState {
   const showError = useCallback((message: string) => {
     setStatusMessage(message)
   }, [])
+
+  const loadNotes = useCallback(async (): Promise<void> => {
+    const notesBridge = getNotesBridge()
+
+    setIsLoading(true)
+    setLoadErrorMessage(undefined)
+    setStatusMessage('Loading notes...')
+
+    if (!notesBridge) {
+      const message = 'Desktop note storage is unavailable.'
+
+      if (isMountedRef.current) {
+        setIsLoading(false)
+        setLoadErrorMessage(message)
+        showError(message)
+      }
+
+      return
+    }
+
+    try {
+      const result = await notesBridge.list()
+
+      if (!isMountedRef.current) {
+        return
+      }
+
+      if (result.ok) {
+        setNotes(result.value)
+        setLoadErrorMessage(undefined)
+        setStatusMessage('Stored on this device')
+      } else {
+        setLoadErrorMessage(result.error.message)
+        showError(result.error.message)
+      }
+    } catch (error) {
+      if (isMountedRef.current) {
+        const message = getErrorMessage(error)
+
+        setLoadErrorMessage(message)
+        showError(message)
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoading(false)
+      }
+    }
+  }, [showError])
 
   const savePendingNote = useCallback(
     async ({ note, sequence }: PendingNoteSave): Promise<void> => {
@@ -231,53 +283,22 @@ export function useNoteList(): NoteListState {
   }, [autosaveScheduler, flushPendingSave])
 
   useEffect(() => {
-    let isActive = true
+    isMountedRef.current = true
 
-    async function loadNotes(): Promise<void> {
-      const notesBridge = getNotesBridge()
-
-      if (!notesBridge) {
-        if (isActive) {
-          setIsLoading(false)
-          showError('Desktop note storage is unavailable.')
-        }
-
-        return
+    queueMicrotask(() => {
+      if (isMountedRef.current) {
+        void loadNotes()
       }
-
-      try {
-        const result = await notesBridge.list()
-
-        if (!isActive) {
-          return
-        }
-
-        if (result.ok) {
-          setNotes(result.value)
-          setStatusMessage('Stored on this device')
-        } else {
-          showError(result.error.message)
-        }
-      } catch (error) {
-        if (isActive) {
-          showError(getErrorMessage(error))
-        }
-      } finally {
-        if (isActive) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    void loadNotes()
+    })
 
     return () => {
-      isActive = false
+      isMountedRef.current = false
     }
-  }, [showError])
+  }, [loadNotes])
 
   useEffect(() => {
     const unsubscribe = window.desktop?.notes.onChanged((summary) => {
+      setLoadErrorMessage(undefined)
       setNotes((currentNotes) => upsertNoteSummary(currentNotes, summary))
       setStatusMessage('Stored on this device')
     })
@@ -286,6 +307,10 @@ export function useNoteList(): NoteListState {
       unsubscribe?.()
     }
   }, [])
+
+  const reloadNotes = useCallback(() => {
+    void loadNotes()
+  }, [loadNotes])
 
   const createNote = useCallback(() => {
     const sequence = selectionSequence.current + 1
@@ -315,6 +340,7 @@ export function useNoteList(): NoteListState {
           return
         }
 
+        setLoadErrorMessage(undefined)
         setNotes((currentNotes) =>
           upsertNoteSummary(currentNotes, result.value)
         )
@@ -503,6 +529,7 @@ export function useNoteList(): NoteListState {
           result.value.status === 'imported' ? result.value.notes : undefined
 
         if (importedNotes) {
+          setLoadErrorMessage(undefined)
           setNotes((currentNotes) =>
             importedNotes.reduce<readonly NoteSummary[]>(
               (nextNotes, note) => upsertNoteSummary(nextNotes, note),
@@ -570,11 +597,13 @@ export function useNoteList(): NoteListState {
     selectedNoteId,
     selectedNote,
     isLoading,
+    loadErrorMessage,
     statusMessage,
     createNote,
     deleteSelectedNote,
     exportSelectedNote,
     importNotes,
+    reloadNotes,
     selectNote,
     setSearchQuery,
     updateSelectedNoteContent

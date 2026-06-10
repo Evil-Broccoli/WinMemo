@@ -1,7 +1,17 @@
 import assert from 'node:assert/strict'
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync
+} from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 import test from 'node:test'
 import { createDocumentHandlers } from '../src/main/documents/document-handlers'
 import type { DocumentNoteRepository } from '../src/main/documents/document-handlers'
+import { markdownToPlainText } from '../src/main/documents/text-export'
 import {
   createNotePreviewText,
   deriveNoteTitle
@@ -9,6 +19,25 @@ import {
 import type { Note, NoteCreateInput } from '../src/shared/notes'
 
 const STATIC_TIMESTAMP = '2026-06-04T08:00:00.000Z'
+
+function createTempDirectory(): string {
+  return mkdtempSync(join(tmpdir(), 'windows-memo-export-'))
+}
+
+function removeTempDirectory(directoryPath: string): void {
+  const resolvedTempDirectory = resolve(tmpdir())
+  const resolvedDirectoryPath = resolve(directoryPath)
+
+  if (
+    !resolvedDirectoryPath.startsWith(
+      join(resolvedTempDirectory, 'windows-memo-export-')
+    )
+  ) {
+    throw new Error(`Refusing to remove unexpected path: ${directoryPath}`)
+  }
+
+  rmSync(resolvedDirectoryPath, { recursive: true, force: true })
+}
 
 function createTestRepository(options?: {
   readonly notes?: readonly Note[]
@@ -410,33 +439,174 @@ test('passes selected export destination and note data to the export pipeline', 
   ])
 })
 
-test('returns selected export destination before format writers are attached', async () => {
-  const note = createTestNote()
-  const repository = createTestRepository({
-    notes: [note]
-  })
-  const handlers = createDocumentHandlers({
-    dialog: {
-      showExportFilePicker: async () =>
-        'C:\\Users\\sangu\\Documents\\meeting-export'
-    },
-    repository: repository.repository
-  })
+test('exports markdown notes as UTF-8 Markdown files', async () => {
+  const tempDirectory = createTempDirectory()
 
-  assert.deepEqual(
-    await handlers.exportNote({
-      noteId: note.id,
-      format: 'docx'
-    }),
-    {
-      ok: true,
-      value: {
-        status: 'selected',
-        filePath: 'C:\\Users\\sangu\\Documents\\meeting-export.docx',
-        format: 'docx'
+  try {
+    const note = createTestNote({
+      contentMarkdown: '# Meeting notes\n\nFollow up with **Alex**.'
+    })
+    const exportPath = join(tempDirectory, 'meeting.md')
+    const repository = createTestRepository({
+      notes: [note]
+    })
+    const handlers = createDocumentHandlers({
+      dialog: {
+        showExportFilePicker: async () => exportPath
+      },
+      repository: repository.repository
+    })
+
+    assert.deepEqual(
+      await handlers.exportNote({
+        noteId: note.id,
+        format: 'md'
+      }),
+      {
+        ok: true,
+        value: {
+          status: 'exported',
+          filePath: exportPath,
+          format: 'md'
+        }
       }
-    }
+    )
+    assert.equal(
+      readFileSync(exportPath, 'utf8'),
+      '# Meeting notes\n\nFollow up with **Alex**.'
+    )
+  } finally {
+    removeTempDirectory(tempDirectory)
+  }
+})
+
+test('exports markdown notes as readable UTF-8 text files', async () => {
+  const tempDirectory = createTempDirectory()
+
+  try {
+    const note = createTestNote({
+      contentMarkdown: [
+        '# Meeting notes',
+        '',
+        '- [x] Follow up with **Alex**',
+        '- Review [project brief](https://example.com/brief)',
+        '',
+        '![Whiteboard sketch](windows-memo-asset://local/sketch.png)',
+        '',
+        '```ts',
+        'const done = true',
+        '```'
+      ].join('\n')
+    })
+    const exportPath = join(tempDirectory, 'meeting.txt')
+    const repository = createTestRepository({
+      notes: [note]
+    })
+    const handlers = createDocumentHandlers({
+      dialog: {
+        showExportFilePicker: async () => exportPath
+      },
+      repository: repository.repository
+    })
+
+    assert.deepEqual(
+      await handlers.exportNote({
+        noteId: note.id,
+        format: 'md'
+      }),
+      {
+        ok: true,
+        value: {
+          status: 'exported',
+          filePath: exportPath,
+          format: 'txt'
+        }
+      }
+    )
+    assert.equal(
+      readFileSync(exportPath, 'utf8'),
+      [
+        'Meeting notes',
+        '',
+        'Follow up with Alex',
+        'Review project brief',
+        '',
+        'Whiteboard sketch',
+        '',
+        'const done = true'
+      ].join('\n')
+    )
+  } finally {
+    removeTempDirectory(tempDirectory)
+  }
+})
+
+test('converts common Markdown syntax to plain text for txt export', () => {
+  assert.equal(
+    markdownToPlainText(
+      [
+        '\uFEFF## Daily capture ##',
+        '',
+        '> Keep this readable.',
+        '',
+        '| Item | Status |',
+        '| --- | --- |',
+        '| Notes | Ready |',
+        '',
+        'Escaped \\*literal\\* and `inline code`.',
+        '',
+        '[ref]: https://example.com'
+      ].join('\n')
+    ),
+    [
+      'Daily capture',
+      '',
+      'Keep this readable.',
+      '',
+      'Item\tStatus',
+      'Notes\tReady',
+      '',
+      'Escaped *literal* and inline code.'
+    ].join('\n')
   )
+})
+
+test('exports docx notes through the default export writer', async () => {
+  const tempDirectory = createTempDirectory()
+
+  try {
+    const note = createTestNote()
+    const exportPath = join(tempDirectory, 'meeting-export')
+    const expectedPath = `${exportPath}.docx`
+    const repository = createTestRepository({
+      notes: [note]
+    })
+    const handlers = createDocumentHandlers({
+      dialog: {
+        showExportFilePicker: async () => exportPath
+      },
+      repository: repository.repository
+    })
+
+    assert.deepEqual(
+      await handlers.exportNote({
+        noteId: note.id,
+        format: 'docx'
+      }),
+      {
+        ok: true,
+        value: {
+          status: 'exported',
+          filePath: expectedPath,
+          format: 'docx'
+        }
+      }
+    )
+    assert.equal(existsSync(expectedPath), true)
+    assert.ok(statSync(expectedPath).size > 0)
+  } finally {
+    removeTempDirectory(tempDirectory)
+  }
 })
 
 test('rejects unsupported export destination formats', async () => {
